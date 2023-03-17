@@ -16,11 +16,13 @@ import (
 )
 
 var (
-	verbose bool
+	PluginFile = "./kv-plugin"
+	verbose    bool
 )
 
 func init() {
 	flag.BoolVar(&verbose, "verbose", false, "show logs")
+	flag.StringVar(&PluginFile, "plugin", PluginFile, "plugin to execute")
 }
 
 func main() {
@@ -53,7 +55,7 @@ func main() {
 	client := plugin.NewClient(&plugin.ClientConfig{
 		HandshakeConfig:  shared.Handshake,
 		VersionedPlugins: plugins,
-		Cmd:              exec.Command("./kv-plugin"),
+		Cmd:              exec.Command(PluginFile),
 		AllowedProtocols: []plugin.Protocol{
 			plugin.ProtocolNetRPC, plugin.ProtocolGRPC},
 	})
