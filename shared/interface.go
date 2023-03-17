@@ -8,10 +8,10 @@ import (
 	"context"
 	"net/rpc"
 
+	"github.com/hashicorp/go-plugin"
 	"google.golang.org/grpc"
 
-	"github.com/hashicorp/go-plugin"
-	"github.com/hashicorp/go-plugin/examples/grpc/proto"
+	"github.com/paulstuart/hashiplug/proto"
 )
 
 const PluginName = "kv"

@@ -18,6 +18,126 @@ import (
 // Requires gRPC-Go v1.32.0 or later.
 const _ = grpc.SupportPackageIsVersion7
 
+// KVClient is the client API for KV service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type KVClient interface {
+	Get(ctx context.Context, in *GetRequest, opts ...grpc.CallOption) (*GetResponse, error)
+	Put(ctx context.Context, in *PutRequest, opts ...grpc.CallOption) (*Empty, error)
+}
+
+type kVClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewKVClient(cc grpc.ClientConnInterface) KVClient {
+	return &kVClient{cc}
+}
+
+func (c *kVClient) Get(ctx context.Context, in *GetRequest, opts ...grpc.CallOption) (*GetResponse, error) {
+	out := new(GetResponse)
+	err := c.cc.Invoke(ctx, "/proto.KV/Get", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *kVClient) Put(ctx context.Context, in *PutRequest, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, "/proto.KV/Put", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// KVServer is the server API for KV service.
+// All implementations should embed UnimplementedKVServer
+// for forward compatibility
+type KVServer interface {
+	Get(context.Context, *GetRequest) (*GetResponse, error)
+	Put(context.Context, *PutRequest) (*Empty, error)
+}
+
+// UnimplementedKVServer should be embedded to have forward compatible implementations.
+type UnimplementedKVServer struct {
+}
+
+func (UnimplementedKVServer) Get(context.Context, *GetRequest) (*GetResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Get not implemented")
+}
+func (UnimplementedKVServer) Put(context.Context, *PutRequest) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Put not implemented")
+}
+
+// UnsafeKVServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to KVServer will
+// result in compilation errors.
+type UnsafeKVServer interface {
+	mustEmbedUnimplementedKVServer()
+}
+
+func RegisterKVServer(s grpc.ServiceRegistrar, srv KVServer) {
+	s.RegisterService(&KV_ServiceDesc, srv)
+}
+
+func _KV_Get_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(KVServer).Get(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/proto.KV/Get",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(KVServer).Get(ctx, req.(*GetRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _KV_Put_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PutRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(KVServer).Put(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/proto.KV/Put",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(KVServer).Put(ctx, req.(*PutRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// KV_ServiceDesc is the grpc.ServiceDesc for KV service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var KV_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "proto.KV",
+	HandlerType: (*KVServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "Get",
+			Handler:    _KV_Get_Handler,
+		},
+		{
+			MethodName: "Put",
+			Handler:    _KV_Put_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "proto/kv.proto",
+}
+
 // CounterClient is the client API for Counter service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
@@ -53,15 +173,14 @@ func (c *counterClient) Put(ctx context.Context, in *PutRequest, opts ...grpc.Ca
 }
 
 // CounterServer is the server API for Counter service.
-// All implementations must embed UnimplementedCounterServer
+// All implementations should embed UnimplementedCounterServer
 // for forward compatibility
 type CounterServer interface {
 	Get(context.Context, *GetRequest) (*GetResponse, error)
 	Put(context.Context, *PutRequest) (*Empty, error)
-	mustEmbedUnimplementedCounterServer()
 }
 
-// UnimplementedCounterServer must be embedded to have forward compatible implementations.
+// UnimplementedCounterServer should be embedded to have forward compatible implementations.
 type UnimplementedCounterServer struct {
 }
 
@@ -71,7 +190,6 @@ func (UnimplementedCounterServer) Get(context.Context, *GetRequest) (*GetRespons
 func (UnimplementedCounterServer) Put(context.Context, *PutRequest) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Put not implemented")
 }
-func (UnimplementedCounterServer) mustEmbedUnimplementedCounterServer() {}
 
 // UnsafeCounterServer may be embedded to opt out of forward compatibility for this service.
 // Use of this interface is not recommended, as added methods to CounterServer will
@@ -165,21 +283,19 @@ func (c *addHelperClient) Sum(ctx context.Context, in *SumRequest, opts ...grpc.
 }
 
 // AddHelperServer is the server API for AddHelper service.
-// All implementations must embed UnimplementedAddHelperServer
+// All implementations should embed UnimplementedAddHelperServer
 // for forward compatibility
 type AddHelperServer interface {
 	Sum(context.Context, *SumRequest) (*SumResponse, error)
-	mustEmbedUnimplementedAddHelperServer()
 }
 
-// UnimplementedAddHelperServer must be embedded to have forward compatible implementations.
+// UnimplementedAddHelperServer should be embedded to have forward compatible implementations.
 type UnimplementedAddHelperServer struct {
 }
 
 func (UnimplementedAddHelperServer) Sum(context.Context, *SumRequest) (*SumResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Sum not implemented")
 }
-func (UnimplementedAddHelperServer) mustEmbedUnimplementedAddHelperServer() {}
 
 // UnsafeAddHelperServer may be embedded to opt out of forward compatibility for this service.
 // Use of this interface is not recommended, as added methods to AddHelperServer will

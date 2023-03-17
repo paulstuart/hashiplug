@@ -4,7 +4,6 @@
 syntax = "proto3";
 package proto;
 
-// option go_package = "github.com/hashicorp/go-plugin/examples/grpc/proto";
 option go_package = "./proto";
 
 message GetRequest {
@@ -12,16 +11,20 @@ message GetRequest {
 }
 
 message GetResponse {
-    int64 value = 1;
+    bytes value = 1;
 }
 
 message PutRequest {
-    uint32 add_server = 1;
-    string key = 2;
-    int64 value = 3;
+    string key = 1;
+    bytes value = 2;
 }
 
 message Empty {}
+
+service KV {
+    rpc Get(GetRequest) returns (GetResponse);
+    rpc Put(PutRequest) returns (Empty);
+}
 
 message SumRequest {
     int64 a = 1;
