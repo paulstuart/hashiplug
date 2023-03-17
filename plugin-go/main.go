@@ -4,15 +4,14 @@
 package main
 
 import (
-	"fmt"
-	"os"
-
 	"github.com/hashicorp/go-plugin"
 	"github.com/paulstuart/hashiplug/shared"
+	"github.com/paulstuart/hashiplug/shared/exec"
 )
 
 // Here is a real implementation of KV that uses grpc and  writes to a local
 // file with the key name and the contents are the value of the key.
+/*
 type KVGRPC struct{}
 
 func (KVGRPC) Put(key string, value []byte) error {
@@ -44,6 +43,10 @@ func (KV) Get(key string) ([]byte, error) {
 	}
 	return append(d, []byte("Read by plugin version 2\n")...), nil
 }
+*/
+
+type KVGRPC = exec.KVGRPC
+type KV = exec.KV
 
 func main() {
 	plugin.Serve(&plugin.ServeConfig{
@@ -51,11 +54,11 @@ func main() {
 		VersionedPlugins: map[int]plugin.PluginSet{
 			// Version 2 only uses NetRPC
 			2: {
-				"kv": &shared.KVPlugin{Impl: &KV{}},
+				shared.PluginName: &shared.KVPlugin{Impl: &KV{}},
 			},
 			// Version 3 only uses GRPC
 			3: {
-				"kv": &shared.KVGRPCPlugin{Impl: &KVGRPC{}},
+				shared.PluginName: &shared.KVGRPCPlugin{Impl: &KVGRPC{}},
 			},
 		},
 

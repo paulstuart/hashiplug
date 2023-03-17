@@ -4,6 +4,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -11,12 +12,24 @@ import (
 	"os/exec"
 
 	"github.com/hashicorp/go-plugin"
-	"github.com/hashicorp/go-plugin/examples/grpc/shared"
+	"github.com/paulstuart/hashiplug/shared"
 )
 
+var (
+	verbose bool
+)
+
+func init() {
+	flag.BoolVar(&verbose, "verbose", false, "show logs")
+}
+
 func main() {
-	// We don't want to see the plugin logs.
-	log.SetOutput(ioutil.Discard)
+	flag.Parse()
+
+	if !verbose {
+		// We don't want to see the plugin logs.
+		log.SetOutput(ioutil.Discard)
+	}
 
 	plugins := map[int]plugin.PluginSet{}
 
@@ -25,7 +38,7 @@ func main() {
 	switch os.Getenv("KV_PROTO") {
 	case "netrpc":
 		plugins[2] = plugin.PluginSet{
-			"kv": &shared.KVPlugin{},
+			shared.PluginName: &shared.KVPlugin{},
 		}
 	case "grpc":
 		plugins[3] = plugin.PluginSet{

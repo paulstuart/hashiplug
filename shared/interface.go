@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/go-plugin/examples/grpc/proto"
 )
 
-const FilePrefix = "__kv_"
+const PluginName = "kv"
 
 // Handshake is a common handshake that is shared by plugin and host.
 var Handshake = plugin.HandshakeConfig{
