@@ -10,6 +10,7 @@ all: kv kv-plugin
 
 clean:
 	rm -f kv kv-plugin
+	rm -f proto/*.go
 
 # This builds the main CLI
 kv:
