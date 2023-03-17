@@ -34,6 +34,7 @@ var PluginMap = map[string]plugin.Plugin{
 type KV interface {
 	Put(key string, value []byte) error
 	Get(key string) ([]byte, error)
+	Keys() ([]string, error)
 }
 
 // This is the implementation of plugin.Plugin so we can serve/consume this.

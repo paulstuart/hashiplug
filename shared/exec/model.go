@@ -6,6 +6,7 @@ package exec
 import (
 	"fmt"
 	"os"
+	"strings"
 )
 
 const FilePrefix = "__kv_"
@@ -27,6 +28,23 @@ func (KVGRPC) Get(key string) ([]byte, error) {
 	return append(d, []byte("Read by plugin version 3\n")...), nil
 }
 
+func (KVGRPC) Keys() ([]string, error) {
+	files, err := os.ReadDir(".")
+	if err != nil {
+		return nil, err
+	}
+	const pre = len(FilePrefix)
+	var keys []string
+	for _, file := range files {
+		name := file.Name()
+		if strings.HasPrefix(name, FilePrefix) {
+			keys = append(keys, name[pre:])
+		}
+
+	}
+	return keys, nil
+}
+
 // Here is a real implementation of KV that writes to a local file with
 // the key name and the contents are the value of the key.
 type KV struct{}
@@ -42,4 +60,8 @@ func (KV) Get(key string) ([]byte, error) {
 		return nil, err
 	}
 	return append(d, []byte("Read by plugin version 2\n")...), nil
+}
+
+func (KV) Keys() ([]string, error) {
+	return KVGRPC{}.Keys()
 }

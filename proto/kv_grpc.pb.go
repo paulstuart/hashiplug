@@ -24,6 +24,7 @@ const _ = grpc.SupportPackageIsVersion7
 type KVClient interface {
 	Get(ctx context.Context, in *GetRequest, opts ...grpc.CallOption) (*GetResponse, error)
 	Put(ctx context.Context, in *PutRequest, opts ...grpc.CallOption) (*Empty, error)
+	Keys(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*KeysResponse, error)
 }
 
 type kVClient struct {
@@ -52,12 +53,22 @@ func (c *kVClient) Put(ctx context.Context, in *PutRequest, opts ...grpc.CallOpt
 	return out, nil
 }
 
+func (c *kVClient) Keys(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*KeysResponse, error) {
+	out := new(KeysResponse)
+	err := c.cc.Invoke(ctx, "/proto.KV/Keys", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // KVServer is the server API for KV service.
 // All implementations should embed UnimplementedKVServer
 // for forward compatibility
 type KVServer interface {
 	Get(context.Context, *GetRequest) (*GetResponse, error)
 	Put(context.Context, *PutRequest) (*Empty, error)
+	Keys(context.Context, *Empty) (*KeysResponse, error)
 }
 
 // UnimplementedKVServer should be embedded to have forward compatible implementations.
@@ -69,6 +80,9 @@ func (UnimplementedKVServer) Get(context.Context, *GetRequest) (*GetResponse, er
 }
 func (UnimplementedKVServer) Put(context.Context, *PutRequest) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Put not implemented")
+}
+func (UnimplementedKVServer) Keys(context.Context, *Empty) (*KeysResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Keys not implemented")
 }
 
 // UnsafeKVServer may be embedded to opt out of forward compatibility for this service.
@@ -118,6 +132,24 @@ func _KV_Put_Handler(srv interface{}, ctx context.Context, dec func(interface{})
 	return interceptor(ctx, in, info, handler)
 }
 
+func _KV_Keys_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(KVServer).Keys(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/proto.KV/Keys",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(KVServer).Keys(ctx, req.(*Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // KV_ServiceDesc is the grpc.ServiceDesc for KV service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -132,6 +164,10 @@ var KV_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Put",
 			Handler:    _KV_Put_Handler,
+		},
+		{
+			MethodName: "Keys",
+			Handler:    _KV_Keys_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -95,6 +95,14 @@ func main() {
 			os.Exit(1)
 		}
 
+	case "keys":
+		keys, err := kv.Keys()
+		if err != nil {
+			fmt.Println("Error:", err.Error())
+			os.Exit(1)
+		}
+		fmt.Printf("keys: %v\n", keys)
+
 	default:
 		fmt.Println("Please only use 'get' or 'put'")
 		os.Exit(1)
