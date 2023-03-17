@@ -6,7 +6,7 @@ package main
 import (
 	"flag"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"os"
 	"os/exec"
@@ -28,7 +28,7 @@ func main() {
 
 	if !verbose {
 		// We don't want to see the plugin logs.
-		log.SetOutput(ioutil.Discard)
+		log.SetOutput(io.Discard)
 	}
 
 	plugins := map[int]plugin.PluginSet{}
@@ -42,7 +42,7 @@ func main() {
 		}
 	case "grpc":
 		plugins[3] = plugin.PluginSet{
-			"kv": &shared.KVGRPCPlugin{},
+			shared.PluginName: &shared.KVGRPCPlugin{},
 		}
 	default:
 		fmt.Println("must set KV_PROTO to netrpc or grpc")
@@ -66,7 +66,7 @@ func main() {
 	}
 
 	// Request the plugin
-	raw, err := rpcClient.Dispense("kv")
+	raw, err := rpcClient.Dispense(shared.PluginName)
 	if err != nil {
 		fmt.Println("Error:", err.Error())
 		os.Exit(1)
@@ -75,10 +75,10 @@ func main() {
 	// We should have a KV store now! This feels like a normal interface
 	// implementation but is in fact over an RPC connection.
 	kv := raw.(shared.KV)
-	os.Args = os.Args[1:]
-	switch os.Args[0] {
+	args := flag.Args()
+	switch args[0] {
 	case "get":
-		result, err := kv.Get(os.Args[1])
+		result, err := kv.Get(args[1])
 		if err != nil {
 			fmt.Println("Error:", err.Error())
 			os.Exit(1)
@@ -87,7 +87,7 @@ func main() {
 		fmt.Println(string(result))
 
 	case "put":
-		err := kv.Put(os.Args[1], []byte(os.Args[2]))
+		err := kv.Put(args[1], []byte(args[2]))
 		if err != nil {
 			fmt.Println("Error:", err.Error())
 			os.Exit(1)

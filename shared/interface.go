@@ -26,8 +26,8 @@ var Handshake = plugin.HandshakeConfig{
 
 // PluginMap is the map of plugins we can dispense.
 var PluginMap = map[string]plugin.Plugin{
-	"kv_grpc": &KVGRPCPlugin{},
-	"kv":      &KVPlugin{},
+	"kv_grpc":  &KVGRPCPlugin{},
+	PluginName: &KVPlugin{},
 }
 
 // KV is the interface that we're exposing as a plugin.
